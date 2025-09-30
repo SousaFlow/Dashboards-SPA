@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Suporte de TI</title>
+    
+    <!-- Fontes e Ícones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Biblioteca de Gráficos Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #096f8e;
+            --darker-primary: #064b61;
+            --text-color-light: #f1f1f1;
+            --background-light: #ffffff;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: var(--primary-color);
+            overflow-x: hidden;
+        }
+
+        /* --- Barra Lateral (Sidebar) --- */
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 100;
+            top: 0;
+            left: 0;
+            background-color: var(--darker-primary);
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            box-shadow: 3px 0px 15px rgba(0,0,0,0.2);
+        }
+
+        .sidebar a {
+            padding: 10px 15px 10px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--text-color-light);
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .sidebar a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .sidebar a i {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar hr {
+            border: 0;
+            border-top: 1px solid #085a72;
+            margin: 10px 20px;
+        }
+
+        .sidebar .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+
+        /* --- Conteúdo Principal e Vistas --- */
+        #main {
+            transition: margin-left .5s;
+            padding: 0;
+            width: 100%;
+        }
+        
+        .view {
+            display: none;
+            padding: 20px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .view.active {
+            display: flex;
+        }
+        
+        /* --- Cabeçalho --- */
+        .header {
+            background-color: var(--primary-color);
+            padding: 15px 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 50;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin: 0;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .openbtn {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .logo-container {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .logo-container img {
+            max-height: 50px;
+            width: auto;
+            display: block;
+        }
+        
+        /* --- Área do Dashboard --- */
+        .dashboard-container {
+            background-color: var(--background-light);
+            padding: 0; 
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            width: 95%;
+            max-width: 1600px;
+            height: calc(100vh - 120px);
+            display: flex;
+            overflow: hidden;
+        }
+
+        .dashboard-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* --- Estilos do Criador de Gráficos --- */
+        .creator-container {
+            display: flex;
+            gap: 30px;
+            width: 95%;
+            max-width: 1600px;
+            align-items: flex-start;
+        }
+
+        .chart-controls {
+            background: var(--background-light);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            flex-basis: 350px;
+            flex-shrink: 0;
+            color: #333;
+        }
+
+        .chart-controls h3 {
+            margin-top: 0;
+            text-align: center;
+            color: var(--darker-primary);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-group button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .form-group button:hover {
+            background-color: var(--darker-primary);
+        }
+
+        .chart-container {
+            flex-grow: 1;
+            background: var(--background-light);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            height: 70vh;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="mySidebar" class="sidebar">
+        <a class="closebtn" onclick="closeNav()">&times;</a>
+        <a onclick="showView('dashboardView')"><i class="fas fa-chart-line"></i>Dashboard Principal</a>
+        <hr>
+        <a onclick="showView('creatorView')"><i class="fas fa-pencil-ruler"></i>Criação de Dados</a>
+        <hr>
+        <a onclick="showView('suporteN1View')"><i class="fas fa-headset"></i>Suporte N1</a>
+        <a onclick="showView('dashboardView')"><i class="fas fa-user-tie"></i>Suporte N2</a>
+        <a onclick="showView('dashboardView')"><i class="fas fa-key"></i>Gestão de Acessos</a>
+        <a onclick="showView('dashboardView')"><i class="fas fa-house-laptop"></i>Home Office</a>
+        <a onclick="showView('dashboardView')"><i class="fas fa-user-clock"></i>Absenteísmos</a>
+        <a onclick="showView('dashboardView')"><i class="fas fa-clipboard-list"></i>Registros de Atividades</a>
+    </div>
+
+    <div id="main">
+        <div class="header">
+            <button class="openbtn" onclick="openNav()">&#9776;</button>
+            <h1>Relatório de Suporte de TI</h1>
+            <div class="logo-container">
+                <a href="https://ibb.co/tPTKPPYr" target="_blank">
+                    <img src="https://i.ibb.co/tPTKPPYr/image-Photoroom.png" alt="Logo da Empresa" border="0">
+                </a>
+            </div>
+        </div>
+        
+        <div id="dashboardView" class="view">
+            <div class="dashboard-container">
+                <iframe title="Dashboard Principal" src="https://example.com/seu-dashboard-aqui" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div id="suporteN1View" class="view active">
+             <div class="dashboard-container">
+                <iframe title="Relatório Suporte N1" src="https://app.powerbi.com/view?r=eyJrIjoiMDE0Nzk5ZWItM2EyNi00NWFkLWFiN2YtNzE0YzQ1YzRlODAxIiwidCI6ImQwZThmNWIwLTExNjUtNDcwZC1iOTU0LTUzZWE4OTRjNzAwMiJ9" frameborder="0" allowFullScreen="true"></iframe>
+            </div>
+        </div>
+        
+        <div id="creatorView" class="view">
+            <div class="creator-container">
+                <div class="chart-controls">
+                    <h3>Configurar Gráfico</h3>
+                    <div class="form-group">
+                        <label for="chartTitle">Título do Gráfico</label>
+                        <input type="text" id="chartTitle" value="Meu Gráfico">
+                    </div>
+                    <div class="form-group">
+                        <label for="chartLabels">Rótulos (separados por vírgula)</label>
+                        <textarea id="chartLabels" rows="3" placeholder="Ex: Janeiro, Fevereiro, Março"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="chartData">Dados (separados por vírgula)</label>
+                        <textarea id="chartData" rows="3" placeholder="Ex: 10, 20, 15"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="chartType">Tipo de Gráfico</label>
+                        <select id="chartType">
+                            <option value="bar">Barras</option>
+                            <option value="line">Linha</option>
+                            <option value="pie">Pizza</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button id="generateChartBtn">Gerar Gráfico</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="myChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Controle da Sidebar ---
+        function openNav() {
+            document.getElementById("mySidebar").style.width = "280px";
+            document.getElementById("main").style.marginLeft = "280px";
+        }
+
+        function closeNav() {
+            document.getElementById("mySidebar").style.width = "0";
+            document.getElementById("main").style.marginLeft= "0";
+        }
+
+        // --- Controle de Vistas ---
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById(viewId).classList.add('active');
+            closeNav();
+        }
+        
+        // --- Lógica do Criador de Gráficos ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const generateBtn = document.getElementById('generateChartBtn');
+            // CORREÇÃO: getContext('d') foi alterado para getContext('2d')
+            const ctx = document.getElementById('myChart').getContext('2d');
+            let currentChart = null;
+
+            generateBtn.addEventListener('click', () => {
+                // Destroi o gráfico anterior se ele existir
+                if (currentChart) {
+                    currentChart.destroy();
+                }
+
+                // Pega os dados do formulário
+                const title = document.getElementById('chartTitle').value;
+                const labelsValue = document.getElementById('chartLabels').value;
+                const dataValue = document.getElementById('chartData').value;
+                const type = document.getElementById('chartType').value;
+
+                // Validação para garantir que os campos não estão vazios
+                if (!labelsValue || !dataValue) {
+                    alert('Por favor, preencha os campos de Rótulos e Dados para gerar o gráfico.');
+                    return;
+                }
+                
+                const labels = labelsValue.split(',').map(item => item.trim());
+                const data = dataValue.split(',').map(Number);
+                
+                // Gera o novo gráfico
+                currentChart = new Chart(ctx, {
+                    type: type,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: title,
+                            data: data,
+                            backgroundColor: [
+                                'rgba(9, 111, 142, 0.7)', 'rgba(255, 99, 132, 0.7)',
+                                'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)',
+                                'rgba(255, 159, 64, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(9, 111, 142, 1)', 'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: title,
+                                font: {
+                                    size: 18
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
